@@ -98,40 +98,46 @@ void Bitmap::TurnBinarize(Bitmap bitSource)
     setBinaryRGBQUAD();
     //alloc memory for image data
     imageData = new BYTE[height*widthBytes];
+    //initialize imageData
+    for (int i =0; i<height; i++) {
+        for (int j=0; j<widthBytes; j++) {
+            imageData[i*widthBytes+j]=0;
+        }
+    }
     
     //binarie the image block by block
     //set the block size be 1/100 of the image
     int wid=0,hei=0;
-    int blockWidth=weight/10, blockHeight=height/10;
-    //turn the block size to be multiples of 4
-    blockWidth=(blockWidth+3)&~3;
-    blockHeight=(blockHeight+3)&~3;
-    for (int i=0; i<10; i++) {
-        for (int j=0; j<10; j++) {
-            BinarizeOtsu(wid, hei, gray+weight*hei+wid, imageData+widthBytes*hei+wid);
-            wid+=blockWidth;
+    int blockWidth=32, blockHeight=32;//define the block size: 32*32
+    while(hei<height){
+        for (wid=0; wid<weight; wid+=blockWidth) {
+            BinarizeOtsu(weight, height, gray+bitSource.widthBytes*hei+wid, imageData+widthBytes*hei+wid/8, blockWidth, blockHeight);
         }
         hei+=blockHeight;
+        if (hei+blockHeight>height)
+            blockHeight=height-hei;
     }
 //    binarize the block by whole image
-//    BinarizeOtsu(weight, height, gray,imageData);
+//    BinarizeOtsu(weight, height, gray,imageData,weight,height);
     
     
 }
-void BinarizeOtsu(int weight, int height, BYTE *gray,BYTE *imageData)
+void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE *gray,BYTE *imageData,int blockWid, int blockHeight)
 {
-    int widthBytes = ((weight+31)&~31)/8;//binary image line bytes
+    int widthBytes = ((blockWid+31)&~31)/8;//binary image line bytes
+    int widBytesOfImage = ((ImageWeight+31)&~31)/8;
+    int widBytesOfGrayImage = ((ImageWeight*8+31)&~31)/8;
     double histogram[256];
     int i,j;
     for (i=0;i<256;i++)
         histogram[i]=0;
-    for (int i=0; i<height; i++) {
-        for (int j=0; j<weight; j++) {
-            histogram[gray[i*weight+j]]++;
+    for (int i=0; i<blockHeight; i++) {
+        for (int j=0; j<blockWid; j++) {
+            histogram[gray[i*widBytesOfGrayImage+j]]++;
         }
     }
     for (i=0;i<256;i++)
-        histogram[i]/=weight*height;//get the histogram
+        histogram[i]/=blockWid*blockHeight;//get the histogram
     double U=0;
     for (i=0;i<256;i++)
         U+=i*histogram[i];  //total u
@@ -152,14 +158,12 @@ void BinarizeOtsu(int weight, int height, BYTE *gray,BYTE *imageData)
         }
     }
     //write data back
-    for (i=0;i<height;i++)
+    for (i=0;i<blockHeight;i++)
     {
         for (j=0; j<widthBytes; j++) {
-            imageData[i*widthBytes+j]=0;
             for (int k=0; k<8; k++) {
-                int p = gray[i*weight+j*8+k]>T?1:0;
-                imageData[i*widthBytes+j]=imageData[i*widthBytes+j]|(p<<(7-k));//test
-//                cout<<(int)imageData[i*height+j]<<' ';
+                int p = gray[i*widBytesOfGrayImage+j*8+k]>T?1:0;
+                imageData[i*widBytesOfImage+j]=imageData[i*widBytesOfImage+j]|(p<<(7-k));
             }
         }
     }
