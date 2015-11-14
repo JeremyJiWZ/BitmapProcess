@@ -119,8 +119,34 @@ void Bitmap::TurnBinarize(Bitmap bitSource)
     }
 //    binarize the block by whole image
 //    BinarizeOtsu(weight, height, gray,imageData,weight,height);
-    
-    
+}
+void Bitmap::Dilation()
+{
+    int ImageWidth=ih.biWidth;
+    int ImageHeight=ih.biHeight;
+    int structElement[3][3]={0,1,0,1,1,1,0,1,0};
+    int widthBytes = ((ImageWidth+31)&~31)/8;
+    BYTE* newImageData = new BYTE[widthBytes*ImageHeight];
+    for (int y=0; y<ImageHeight; y++) {
+        for (int x=0; x<widthBytes; x++) {
+            newImageData[y*widthBytes+x]=255;
+        }
+    }
+    for (int y=1; y<ImageHeight-1; y++) {
+        for (int x=1; x<ImageWidth-1; x++) {
+            if (getImageData(imageData, x-1, y, widthBytes)||
+                getImageData(imageData, x, y, widthBytes)||
+                getImageData(imageData, x+1, y, widthBytes)||
+                getImageData(imageData, x, y+1, widthBytes)||
+                getImageData(imageData, x, y-1, widthBytes)
+                )
+            {
+                resetImageData(newImageData,x, y, widthBytes);
+            }
+        }
+    }
+    delete[] imageData;
+    imageData=newImageData;
 }
 void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE *gray,BYTE *imageData,int blockWid, int blockHeight)
 {
@@ -157,6 +183,7 @@ void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE *gray,BYTE *imageData,i
             T=i;
         }
     }
+    T*=0.9;
     //write data back
     for (i=0;i<blockHeight;i++)
     {
@@ -168,3 +195,46 @@ void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE *gray,BYTE *imageData,i
         }
     }
 }
+
+//get image data by bit
+//1->black 0->white
+int getImageData(BYTE* imageData,int x, int y, int widthBytes)
+{
+    int wid;    //width
+    int remain; //remain
+    wid=x/8;
+    remain=x%8;
+    if((((imageData[y*widthBytes+wid])>>(7-remain))&1)==1)
+        return 0;
+    return 1;
+}
+//reset image data by bit
+void resetImageData(BYTE* imageData, int x, int y, int widthBytes)
+{
+    int wid;    //width
+    int remain; //remain
+    wid=x/8;
+    remain=x%8;
+    imageData[y*widthBytes+wid]&=(~(1<<(7-remain)))&0b11111111; //bit operation
+}
+//set image data by bit
+void setImageData(BYTE* imageData, int x, int y, int widthBytes)
+{
+    int wid;    //width
+    int remain; //remain
+    wid=x/8;
+    remain=x%8;
+    imageData[y*widthBytes+wid]|=(1<<(7-remain))&0b11111111; //bit opertation
+}
+
+
+
+
+
+
+
+
+
+
+
+

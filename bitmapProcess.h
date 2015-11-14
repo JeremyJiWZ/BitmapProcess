@@ -77,6 +77,10 @@ public:
     void ReadImage();
     void WriteFile();
     void TurnBinarize(Bitmap bitSource);
+    void Dilation();
 };
-void BinarizeOtsu(int weight, int height, BYTE* gray,BYTE *imageData);
+void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE* gray,BYTE *imageData,int blockWid, int blockHeight);
+void resetImageData(BYTE* imageData, int x, int y, int widthBytes);
+void setImageData(BYTE* imageData, int x, int y, int widthBytes);
+int getImageData(BYTE* imageData,int x, int y, int widthBytes);
 #endif /* defined(__bitmapProcess__) */
