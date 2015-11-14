@@ -78,6 +78,9 @@ public:
     void WriteFile();
     void TurnBinarize(Bitmap bitSource);
     void Dilation();
+    void Erosion();
+    void Opening();
+    void Closing();
 };
 void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE* gray,BYTE *imageData,int blockWid, int blockHeight);
 void resetImageData(BYTE* imageData, int x, int y, int widthBytes);

@@ -148,6 +148,42 @@ void Bitmap::Dilation()
     delete[] imageData;
     imageData=newImageData;
 }
+void Bitmap::Erosion()
+{
+    int ImageWidth=ih.biWidth;
+    int ImageHeight=ih.biHeight;
+    int structElement[2][2]={1,1,1,0};
+    int widthBytes = ((ImageWidth+31)&~31)/8;
+    BYTE* newImageData = new BYTE[widthBytes*ImageHeight];
+    for (int y=0; y<ImageHeight; y++) {
+        for (int x=0; x<widthBytes; x++) {
+            newImageData[y*widthBytes+x]=255;
+        }
+    }
+    for (int y=1; y<ImageHeight; y++) {
+        for (int x=0; x<ImageWidth-1; x++) {
+            if (getImageData(imageData, x, y, widthBytes)&&
+                getImageData(imageData, x, y-1, widthBytes)&&
+                getImageData(imageData, x+1, y, widthBytes)
+                )
+            {
+                resetImageData(newImageData,x, y, widthBytes);
+            }
+        }
+    }
+    delete[] imageData;
+    imageData=newImageData;
+}
+void Bitmap::Opening()
+{
+    Erosion();
+    Dilation();
+}
+void Bitmap::Closing()
+{
+    Dilation();
+    Erosion();
+}
 void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE *gray,BYTE *imageData,int blockWid, int blockHeight)
 {
     int widthBytes = ((blockWid+31)&~31)/8;//binary image line bytes
@@ -183,7 +219,7 @@ void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE *gray,BYTE *imageData,i
             T=i;
         }
     }
-    T*=0.9;
+    T*=0.8;//manually lower the threshold, because we need it
     //write data back
     for (i=0;i<blockHeight;i++)
     {
@@ -209,6 +245,7 @@ int getImageData(BYTE* imageData,int x, int y, int widthBytes)
     return 1;
 }
 //reset image data by bit
+//which equals set the bit black
 void resetImageData(BYTE* imageData, int x, int y, int widthBytes)
 {
     int wid;    //width
@@ -218,6 +255,7 @@ void resetImageData(BYTE* imageData, int x, int y, int widthBytes)
     imageData[y*widthBytes+wid]&=(~(1<<(7-remain)))&0b11111111; //bit operation
 }
 //set image data by bit
+//which equals set the bit white
 void setImageData(BYTE* imageData, int x, int y, int widthBytes)
 {
     int wid;    //width
@@ -226,15 +264,5 @@ void setImageData(BYTE* imageData, int x, int y, int widthBytes)
     remain=x%8;
     imageData[y*widthBytes+wid]|=(1<<(7-remain))&0b11111111; //bit opertation
 }
-
-
-
-
-
-
-
-
-
-
 
 

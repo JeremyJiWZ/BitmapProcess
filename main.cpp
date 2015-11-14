@@ -21,7 +21,10 @@ int main() {
     Bitmap desImage(desFileName);
 //    cout<<"input the binarize block size:";
     desImage.TurnBinarize(sourceImage);
-    desImage.Dilation();
+//    desImage.Dilation();
+//    desImage.Erosion();
+//    desImage.Opening();
+    desImage.Closing();
     desImage.WriteFile();
     return 0;
 }
