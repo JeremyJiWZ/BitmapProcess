@@ -346,15 +346,23 @@ void Bitmap::TurnToGray()
     widthBytes = ((ih.biWidth*24+31)&~31)/8;//3
     DFwidthBytes = ((ih.biWidth*8+31)&~31)/8;
 //    this->widthBytes= DFwidthBytes;
-    gray = new BYTE[DFwidthBytes*widthBytes];
+    gray = new BYTE[DFwidthBytes*ih.biHeight];
 //    printf("widthBytes:%d\n",widthBytes );
 //    printf("DFwidthBytes:%d\n",DFwidthBytes);
+
     for(i=0;i<ih.biHeight;i++)
     {
         for(j=0;j<DFwidthBytes;j++)//1
         {
-            gray[i*DFwidthBytes+j]=imageData[i*widthBytes+j*3+0]*0.299+imageData[i*widthBytes+j*3+1]*0.587+imageData[i*widthBytes+j*3+2]*0.114;
+//            cout<<(int)gray[i*widthBytes+j]<<endl;
+//            cout<<(int)imageData[i*widthBytes+j*3]<<' '<<(int)imageData[i*widthBytes+j*3+1]<<' '<<(int)imageData[i*widthBytes+j*3+2]<<' ';
+            gray[i*DFwidthBytes+j]=
+             imageData[i*widthBytes+j*3+0]*0.299    //r
+            +imageData[i*widthBytes+j*3+1]*0.587    //g
+            +imageData[i*widthBytes+j*3+2]*0.114;   //b
+//            cout<<(int)gray[i*DFwidthBytes+j]<<endl;
         }
+        
     }
     delete[] imageData;
     imageData = gray;
@@ -363,11 +371,50 @@ void Bitmap::TurnToGray()
 void Bitmap::VisibilityEnhancement()
 {
     int Lmax=0;
-    log(Lmax+1)/log(imageData[0]+1)*255;
-    
+    //find Lmax
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            if (imageData[i*widthBytes+j]>Lmax) {
+                Lmax=imageData[i*ih.biWidth+j];
+            }
+        }
+    }
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            imageData[i*widthBytes+j]=255*(log(imageData[i*widthBytes+j]+1)/log(Lmax+1));
+        }
+    }
+}
+void Bitmap::HistogramEqualization()
+{
+    double histogram[256];
+    double T[256];
+    for (int i=0; i<256; i++) {
+        histogram[i]=0;
+    }
+    for (int i=0; i<256; i++) {
+        T[i]=0;
+    }
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            histogram[imageData[i*widthBytes+j]]++;
+        }
+    }
+    for (int i=0; i<256; i++) {
+        histogram[i]/=ih.biWidth*ih.biHeight;
+    }
+    T[0]=histogram[0];
+    for(int i=1;i<256;i++){
+        T[i]=T[i-1]+histogram[i];
+//        cout<<T[i]*256<<' ';
+    }
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            imageData[i*widthBytes+j]=255*T[imageData[i*widthBytes+j]];
+        }
+    }
     
 }
-
 
 
 

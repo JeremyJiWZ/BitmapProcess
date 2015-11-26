@@ -78,24 +78,15 @@ public:
     BYTE* getImage();
     void ReadImage();
     void WriteFile();
-    
-    //turn grayscale to binary
     void TurnBinarize(Bitmap bitSource);
-    
-    //for binary picture
     void Dilation();
     void Erosion();
     void Opening();
     void Closing();
-    
-    //for 24-bit picture
     void ChangeLuminance(int k);
-    
-    //for 24-bit picture
     void TurnToGray();
-    
-    //for grayscale picture
     void VisibilityEnhancement();
+    void HistogramEqualization();
 };
 void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE* gray,BYTE *imageData,int blockWid, int blockHeight);
 void resetImageData(BYTE* imageData, int x, int y, int widthBytes);
