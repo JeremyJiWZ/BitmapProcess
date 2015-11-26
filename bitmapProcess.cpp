@@ -7,6 +7,7 @@
 //
 
 #include "bitmapProcess.h"
+#include <math.h>
 void Bitmap::setFH(ImageType i, int weight, int height)
 {
     WORD TYPE=0x4d42;
@@ -359,7 +360,13 @@ void Bitmap::TurnToGray()
     imageData = gray;
     
 }
-
+void Bitmap::VisibilityEnhancement()
+{
+    int Lmax=0;
+    log(Lmax+1)/log(imageData[0]+1)*255;
+    
+    
+}
 
 
 

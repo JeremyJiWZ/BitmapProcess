@@ -2,7 +2,7 @@
 //  main.cpp
 //  ImageProcess
 //
-//  Created by mr.ji on 15/11/25.
+//  Created by mr.ji on 15/11/10.
 //  Copyright (c) 2015年 mr.ji. All rights reserved.
 //
 
@@ -21,6 +21,4 @@ int main(int argc, const char * argv[]) {
     image.setName(des_file);
     image.WriteFile();
     
-    
-    return 0;
 }
