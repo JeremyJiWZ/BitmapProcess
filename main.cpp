@@ -13,13 +13,15 @@
 using namespace std;
 int main(int argc, const char * argv[]) {
     Bitmap image;
-    string fileName="/Users/jiwentadashi/Pragramming/ImageProcessI/ImageProcessI/gray3.bmp";
-    string des_file="/Users/jiwentadashi/Desktop/enhance.bmp";
+    string fileName="/Users/jiwentadashi/Pragramming/ImageProcessI/ImageProcessI/3.bmp";   //source image
+    string des_file="/Users/jiwentadashi/Desktop/enhance3.bmp";    //destination
     image.setName(fileName);
     image.ReadImage();
 //    image.TurnToGray();
-    image.VisibilityEnhancement();
+//    image.VisibilityEnhancement();
 //    image.HistogramEqualization();
+    image.RealVisiEnhance();
+//    image.RealHistogramEqual();
     image.setName(des_file);
     image.WriteFile();
     

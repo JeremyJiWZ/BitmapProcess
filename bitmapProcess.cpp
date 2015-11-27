@@ -415,16 +415,73 @@ void Bitmap::HistogramEqualization()
     }
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
+void Bitmap::RealVisiEnhance()
+{
+    int     i, j;
+    int Rmax=0,Gmax=0,Bmax=0;
+    //find Lmax
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<widthBytes/3; j++) {
+            if (imageData[i*widthBytes+j*3]>Rmax)
+                Rmax=imageData[i*widthBytes+j*3];
+            if (imageData[i*widthBytes+j*3+1]>Gmax)
+                Gmax=imageData[i*widthBytes+j*3+1];
+            if (imageData[i*widthBytes+j*3+2]>Bmax)
+                Bmax=imageData[i*widthBytes+j*3+2];
+        }
+    }
+    cout<<Rmax<<' '<<Gmax<<' '<<Bmax<<endl;
+    widthBytes = ((ih.biWidth*24+31)&~31)/8;//3
+    for(i=0;i<ih.biHeight;i++)
+    {
+        for(j=0;j<widthBytes/3;j++)//1
+        {
+            int rr,gg,bb;
+            rr=imageData[i*widthBytes+j*3];
+            gg=imageData[i*widthBytes+j*3+1];
+            bb=imageData[i*widthBytes+j*3+2];
+            imageData[i*widthBytes+j*3]=255*(log(rr+1)/log(Rmax)+1);
+            imageData[i*widthBytes+j*3+1]=255*(log(gg+1)/log(Gmax)+1);
+            imageData[i*widthBytes+j*3+2]=255*(log(bb+1)/log(Bmax)+1);
+        }
+    }
+}
+void Bitmap::RealHistogramEqual()
+{
+    double Rhistogram[256],Ghistogram[256],Bhistogram[256];
+    double Tr[256],Tg[256],Tb[256];
+    for (int i=0; i<256; i++) {
+        Rhistogram[i]=0;
+        Ghistogram[i]=0;
+        Bhistogram[i]=0;
+    }
+    for (int i=0; i<256; i++) {
+        Tr[i]=0;Tg[i]=0;Tb[i]=0;
+    }
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            Rhistogram[imageData[i*widthBytes+j*3]]++;
+            Ghistogram[imageData[i*widthBytes+j*3+1]]++;
+            Bhistogram[imageData[i*widthBytes+j*3+2]]++;
+        }
+    }
+    for (int i=0; i<256; i++) {
+        Rhistogram[i]/=ih.biWidth*ih.biHeight;Ghistogram[i]/=ih.biWidth*ih.biHeight;Bhistogram[i]/=ih.biWidth*ih.biHeight;
+    }
+    Tr[0]=Rhistogram[0];Tg[0]=Ghistogram[0];Tb[0]=Bhistogram[0];
+    for(int i=1;i<256;i++){
+        Tr[i]=Tr[i-1]+Rhistogram[i];Tg[i]=Tg[i-1]+Ghistogram[i];Tb[i]=Tb[i-1]+Rhistogram[i];
+//        cout<<Tr[i]*256<<' ';
+    }
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            //change rgb
+            BYTE r=imageData[i*widthBytes+j*3+0],g=imageData[i*widthBytes+j*3+1],b=imageData[i*widthBytes+j*3+2];
+//            cout<<"before:"<<(int)r<<' '<<(int)g<<' '<<(int)b<<endl;
+            imageData[i*widthBytes+j*3+0]=255*Tr[r];
+            imageData[i*widthBytes+j*3+1]=255*Tg[g];
+            imageData[i*widthBytes+j*3+2]=255*Tb[b];
+//            cout<<"after:"<<(int)imageData[i*widthBytes+j*3+0]<<' '<<(int)imageData[i*widthBytes+j*3+1]<<' '<<(int)imageData[i*widthBytes+j*3+2]<<endl;
+        }
+    }
+}
