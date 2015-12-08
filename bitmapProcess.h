@@ -58,6 +58,15 @@ typedef struct tagRGBQUAD
     BYTE	rgbReserved;
 }
 RGBQUAD;
+typedef struct color_RGB{
+    BYTE R,G,B;
+}RGB;
+typedef struct point_x_y
+{
+    int x;
+    int y;
+    RGB color;
+}POINT;
 class Bitmap
 {
     BITMAPFILEHEADER fh;
@@ -105,9 +114,25 @@ public:
     void RealVisiEnhance();
     //equalize histogram
     void RealHistogramEqual();
+    
+    //geometry transformation:
+    //translate 24-bit image
+    void tranlate(int x, int y);
+    //rotate 24-bit image, anti-clock
+    void rotate(float theta);
+    //scale 24-bit image
+    void scale(float c,float d);
+    //mirror by x axis
+    void mirror_by_x();
+    //mirror by y axis
+    void mirror_by_y();
+    //shear the picture
+    void shear_on_x(float dx);
+    void shear_on_y(float dy);
 };
 void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE* gray,BYTE *imageData,int blockWid, int blockHeight);
 void resetImageData(BYTE* imageData, int x, int y, int widthBytes);
 void setImageData(BYTE* imageData, int x, int y, int widthBytes);
 int getImageData(BYTE* imageData,int x, int y, int widthBytes);
+RGB BiLinearInterpolation(POINT thisPoint,POINT A, POINT B, POINT C, POINT D);
 #endif /* defined(__bitmapProcess__) */

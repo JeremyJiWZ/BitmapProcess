@@ -5,7 +5,7 @@
 //  Created by mr.ji on 15/11/10.
 //  Copyright (c) 2015年 mr.ji. All rights reserved.
 //
-
+#define PI 3.14159265
 #include "bitmapProcess.h"
 #include <math.h>
 void Bitmap::setFH(ImageType i, int weight, int height)
@@ -485,3 +485,198 @@ void Bitmap::RealHistogramEqual()
         }
     }
 }
+void Bitmap::tranlate(int x, int y){
+    int incX,incY;
+    BYTE *image;
+    int originWidth,originHeight;
+    int newWidth,newHeight;
+    int originWidthBytes,newWidthBytes;
+    //origin width and height
+    originWidth=ih.biWidth;
+    originHeight=ih.biHeight;
+    //the increase width and increase height
+    incX=abs(x);incY=abs(y);
+    //calculate new width and height
+    newWidth=originWidth+incX;
+    newHeight=originHeight+incY;
+    //get the new width bytes
+    originWidthBytes=widthBytes;
+    widthBytes=newWidthBytes=((newWidth*24+31)&~31)/8;
+    //set if,ih
+    setFH(RealImage, newWidth, newHeight);
+    setIH(RealImage, newWidth, newHeight);
+    //new image
+    image = new BYTE[newWidthBytes*newHeight];
+    for (int i=0; i<newHeight; i++) {
+        for (int j=0; j<newWidthBytes; j++) {
+            image[i*widthBytes+j]=0xFF;
+        }
+    }
+    int dx=0,dy=0;
+    if (x>0) dx=x; //transform right
+    if (y<0) dy=x; //transform down
+    for (int i=0; i<originHeight; i++) {
+        for (int j=0; j<originWidth; j++) {
+            image[(i+dy)*widthBytes+(j+dx)*3+0]=
+            imageData[i*originWidthBytes+j*3];  //r
+            image[(i+dy)*widthBytes+(j+dx)*3+1]=
+            imageData[i*originWidthBytes+j*3+1];  //g
+            image[(i+dy)*widthBytes+(j+dx)*3+2]=
+            imageData[i*originWidthBytes+j*3+2];  //b
+        }
+    }
+    delete[] imageData;
+    imageData = image;
+}
+void Bitmap::mirror_by_x(){
+    BYTE *image;
+    //new image
+    image = new BYTE[ih.biHeight*widthBytes];
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            image[i*widthBytes+j*3+0]=
+            imageData[i*widthBytes+(ih.biWidth-j)*3+0];  //r
+            image[i*widthBytes+j*3+1]=
+            imageData[i*widthBytes+(ih.biWidth-j)*3+1];  //g
+            image[i*widthBytes+j*3+2]=
+            imageData[i*widthBytes+(ih.biWidth-j)*3+2];  //b
+        }
+    }
+    delete[] imageData;
+    imageData = image;
+}
+void Bitmap::mirror_by_y(){
+    BYTE *image;
+    //new image
+    image = new BYTE[ih.biHeight*widthBytes];
+    for (int i=0; i<ih.biHeight; i++) {
+        for (int j=0; j<ih.biWidth; j++) {
+            image[i*widthBytes+j*3+0]=
+            imageData[(ih.biHeight-i)*widthBytes+j*3+0];  //r
+            image[i*widthBytes+j*3+1]=
+            imageData[(ih.biHeight-i)*widthBytes+j*3+1];  //g
+            image[i*widthBytes+j*3+2]=
+            imageData[(ih.biHeight-i)*widthBytes+j*3+2];  //b
+        }
+    }
+    delete[] imageData;
+    imageData = image;
+}
+void Bitmap::rotate(float theta){
+    //change theta to arc
+    theta = theta/180*PI;
+    if (theta<0) theta+=2*PI;
+    BYTE *image;
+    int originWidth,originHeight;
+    int newWidth,newHeight;
+    int originWidthBytes,newWidthBytes;
+    //origin width and height
+    originWidth=ih.biWidth;
+    originHeight=ih.biHeight;
+    originWidthBytes=widthBytes;
+    
+    //the new picture's vertex
+    POINT A,B,C,D;
+    A.x=A.y=0;
+    
+    B.x = -originHeight*sin(theta);
+    B.y = originHeight*cos(theta);
+    C.x = originWidth*cos(theta)-originHeight*sin(theta);
+    C.y = originWidth*sin(theta)+originHeight*cos(theta);
+    D.x = originWidth*cos(theta);
+    D.y = originWidth*sin(theta);
+    
+    int ACx,ACy,BDx,BDy;//calculate the new image
+    ACx = abs(A.x-C.x); ACy = abs(A.y-C.y);
+    BDx = abs(B.x-D.x); BDy = abs(B.y-D.y);
+    newWidth = (ACx>BDx)? ACx : BDx ;//max
+    newHeight = (ACy>BDy)? ACy : BDy ;//max
+    newWidthBytes=((newWidth*24+31)&~31)/8;
+    //set fh,ih
+    setFH(RealImage, newWidth, newHeight);
+    setIH(RealImage, newWidth, newHeight);
+    //new image
+    image = new BYTE[newWidthBytes*newHeight];
+    for (int i=0; i<newHeight; i++) {
+        for (int j=0; j<newWidthBytes; j++) {
+            image[i*widthBytes+j]=0xFF;
+        }
+    }
+    int dx,dy;//for transform
+    if (theta>0&&theta<PI/2)
+    {
+        dx = B.x;
+        dy = 0;
+    }
+    else if(theta>=PI/2&&theta<PI)
+    {
+        dx = C.x;
+        dy = B.y;
+    }
+    else if(theta>=PI&&theta<3*PI/2)
+    {
+        dx = D.x;
+        dy = C.y;
+    }
+    else if(theta>=3*PI/2&&theta<2*PI)
+    {
+        dx = 0;
+        dy = D.y;
+    }
+    else{printf("wrong input parameter!\n");return;}
+    //rotate the picture and interpolate value
+    for (int i =0;i<newHeight;i++){
+        for (int j =0; j<newWidth; j++) {
+            //trace back the the pixel in the origin image
+            float x0,y0;//origin pixel, in float, to cast 4 values
+            x0 = (j+dx)*cos(theta)+(i+dy)*sin(theta);
+            y0 = -(j+dx)*sin(theta)+(i+dy)*cos(theta);
+            RGB thisColor;
+            if (x0>originWidth||y0>originHeight||x0<0||y0<0) //blank
+                continue;
+            else if((x0>=0&&x0<1)||(y0>=0&&y0<1))  //on the edge,linear interpolation
+            {
+                image[i*newWidthBytes+j*3+0] =
+                imageData[(int)x0*originWidthBytes+(int)y0*3+0];//r
+                image[i*newWidthBytes+j*3+1] =
+                imageData[(int)x0*originWidthBytes+(int)y0*3+1];//g
+                image[i*newWidthBytes+j*3+2] =
+                imageData[(int)x0*originWidthBytes+(int)y0*3+2];//b
+            }
+            else  //inside the image,bilinear interpolation
+            {
+//                cout<<"x:"<<j<<"y:"<<i<<endl;
+//                cout<<"x0:"<<x0<<"y0:"<<y0<<endl;
+                image[i*newWidthBytes+j*3+0] =
+                imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
+                image[i*newWidthBytes+j*3+1] =
+                imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
+                image[i*newWidthBytes+j*3+2] =
+                imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+            }
+            
+        }
+    }
+    delete[] imageData;
+    imageData = image;
+}
+void Bitmap::scale(float c, float d)
+{
+    
+}
+
+
+RGB BiLinearInterpolation(POINT thisPoint,POINT A,POINT B,POINT C,POINT D){
+    RGB thisColor;
+    
+    return thisColor;
+}
+
+
+
+
+
+
+
+
+
