@@ -660,9 +660,110 @@ void Bitmap::rotate(float theta){
     delete[] imageData;
     imageData = image;
 }
+//c for width scale, d for height scale
 void Bitmap::scale(float c, float d)
 {
-    
+    BYTE* image;
+    int originWidth,originHeight;
+    int newWidth,newHeight;
+    int originWidthBytes,newWidthBytes;
+    //origin width and height
+    originWidth=ih.biWidth;
+    originHeight=ih.biHeight;
+    originWidthBytes=widthBytes;
+    //calculate new width and height
+    newWidth = originWidth*c;
+    newHeight = originHeight*d;
+    newWidthBytes = widthBytes = ((newWidth*24+31)&~31)/8;
+    setFH(RealImage,newWidth , newHeight);
+    setIH(RealImage, newWidth, newHeight);
+    image = new BYTE[newWidthBytes*newHeight];
+    //scale on x and y
+    for (int i=0;i<newHeight;i++)
+        for (int j=0; j<newWidth; j++) {
+            float x0,y0;
+            //trace back to the pixel in the original image
+            x0 = j/c;
+            y0 = i/d;
+            image[i*newWidthBytes+j*3+0] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
+            image[i*newWidthBytes+j*3+1] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
+            image[i*newWidthBytes+j*3+2] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+        }
+    delete[] imageData;
+    imageData = image;
+
+}
+void Bitmap::shear_on_x(float dx){
+    BYTE* image;
+    int originWidth,originHeight;
+    int newWidth,newHeight;
+    int originWidthBytes,newWidthBytes;
+    //origin width and height
+    originWidth=ih.biWidth;
+    originHeight=ih.biHeight;
+    originWidthBytes=widthBytes;
+    //calculate new width and height
+    newWidth = originHeight*dx+originWidth;
+    newHeight = originHeight;
+    newWidthBytes = widthBytes = ((newWidth*24+31)&~31)/8;
+    setFH(RealImage,newWidth , newHeight);
+    setIH(RealImage, newWidth, newHeight);
+    image = new BYTE[newWidthBytes*newHeight];
+    for (int i =0;i<newHeight;i++)
+        for (int j = 0; j<newWidth; j++) {
+            float x0,y0;
+            //trace back to the pixel in the original image
+            x0 = j-dx*i;
+            y0 = i;
+            if (x0>originWidth||y0>originHeight||x0<0||y0<0) //blank
+                continue;
+            image[i*newWidthBytes+j*3+0] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
+            image[i*newWidthBytes+j*3+1] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
+            image[i*newWidthBytes+j*3+2] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+        }
+    delete[] imageData;
+    imageData = image;
+}
+void Bitmap::shear_on_y(float dy)
+{
+    BYTE* image;
+    int originWidth,originHeight;
+    int newWidth,newHeight;
+    int originWidthBytes,newWidthBytes;
+    //origin width and height
+    originWidth=ih.biWidth;
+    originHeight=ih.biHeight;
+    originWidthBytes=widthBytes;
+    //calculate new width and height
+    newWidth = originWidth;
+    newHeight = originWidth*dy+originHeight;
+    newWidthBytes = widthBytes = ((newWidth*24+31)&~31)/8;
+    setFH(RealImage,newWidth , newHeight);
+    setIH(RealImage, newWidth, newHeight);
+    image = new BYTE[newWidthBytes*newHeight];
+    for (int i =0;i<newHeight;i++)
+        for (int j = 0; j<newWidth; j++) {
+            float x0,y0;
+            //trace back to the pixel in the original image
+            x0 = j;
+            y0 = i-dy*j;
+            if (x0>originWidth||y0>originHeight||x0<0||y0<0) //blank
+                continue;
+            image[i*newWidthBytes+j*3+0] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
+            image[i*newWidthBytes+j*3+1] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
+            image[i*newWidthBytes+j*3+2] =
+            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+        }
+    delete[] imageData;
+    imageData = image;
 }
 
 
