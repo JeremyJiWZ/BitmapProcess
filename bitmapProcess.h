@@ -65,7 +65,6 @@ typedef struct point_x_y
 {
     int x;
     int y;
-    RGB color;
 }POINT;
 class Bitmap
 {
@@ -134,5 +133,6 @@ void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE* gray,BYTE *imageData,i
 void resetImageData(BYTE* imageData, int x, int y, int widthBytes);
 void setImageData(BYTE* imageData, int x, int y, int widthBytes);
 int getImageData(BYTE* imageData,int x, int y, int widthBytes);
-RGB BiLinearInterpolation(POINT thisPoint,POINT A, POINT B, POINT C, POINT D);
+//双线性插值
+RGB BiLinearInterpolation(float x, float y,RGB A,RGB B,RGB C, RGB D);
 #endif /* defined(__bitmapProcess__) */

@@ -647,12 +647,52 @@ void Bitmap::rotate(float theta){
             {
 //                cout<<"x:"<<j<<"y:"<<i<<endl;
 //                cout<<"x0:"<<x0<<"y0:"<<y0<<endl;
-                image[i*newWidthBytes+j*3+0] =
-                imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
-                image[i*newWidthBytes+j*3+1] =
-                imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
-                image[i*newWidthBytes+j*3+2] =
-                imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+//                nearest interpolation
+                {
+//                image[i*newWidthBytes+j*3+0] =
+//                imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
+//                image[i*newWidthBytes+j*3+1] =
+//                imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
+//                image[i*newWidthBytes+j*3+2] =
+//                imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+//                cout<<(int)imageData[(int)y0*originWidthBytes+(int)x0*3+0]<<' ';//r
+//                cout<<(int)imageData[(int)y0*originWidthBytes+(int)x0*3+1]<<' ';//g
+//                cout<<(int)imageData[(int)y0*originWidthBytes+(int)x0*3+2]<<endl;//g
+                }
+//                Bilinear Interpolation
+                {
+                int a_x,a_y; a_x=(int)x0;a_y=(int)y0;
+//                cout<<x0<<' '<<y0<<' '<<a_x<<' '<<a_y<<endl;
+                RGB a,b,c,d;
+                
+                a.R=imageData[a_y*originWidthBytes+a_x*3+0];
+                a.G=imageData[a_y*originWidthBytes+a_x*3+1];
+                a.B=imageData[a_y*originWidthBytes+a_x*3+2];
+
+                b.R=imageData[(a_y+1)*originWidthBytes+a_x*3+0];
+                b.G=imageData[(a_y+1)*originWidthBytes+a_x*3+1];
+                b.B=imageData[(a_y+1)*originWidthBytes+a_x*3+2];
+                
+                c.R=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+0];
+                c.G=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+1];
+                c.B=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+2];
+
+                d.R=imageData[a_y*originWidthBytes+(a_x+1)*3+0];
+                d.G=imageData[a_y*originWidthBytes+(a_x+1)*3+1];
+                d.B=imageData[a_y*originWidthBytes+(a_x+1)*3+2];
+                    
+                thisColor = BiLinearInterpolation(x0-a_x, y0-a_y, a, b, c, d);
+                image[i*newWidthBytes+j*3+0]=thisColor.R;
+                image[i*newWidthBytes+j*3+1]=thisColor.G;
+                image[i*newWidthBytes+j*3+2]=thisColor.B;
+
+//                cout<<(int)a.R<<' '<<(int)b.R<<' '<<(int)c.R<<' '<<(int)d.R<<endl;
+
+                }
+                //test
+//                cout<<(int)A.R<<' '<<(int)B.R<<' '<<(int)C.R<<' '<<(int)D.R<<endl;
+//                cout<<(int)A.R<<' '<<(int)A.G<<' '<<(int)A.B<<endl;
+//                cout<<(int)thisColor.R<<' '<<(int)thisColor.G<<' '<<(int)thisColor.B<<endl;
             }
             
         }
@@ -685,12 +725,43 @@ void Bitmap::scale(float c, float d)
             //trace back to the pixel in the original image
             x0 = j/c;
             y0 = i/d;
-            image[i*newWidthBytes+j*3+0] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
-            image[i*newWidthBytes+j*3+1] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
-            image[i*newWidthBytes+j*3+2] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+            //neareast interpolation
+//            {
+//            image[i*newWidthBytes+j*3+0] =
+//            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
+//            image[i*newWidthBytes+j*3+1] =
+//            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
+//            image[i*newWidthBytes+j*3+2] =
+//            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+//            }
+            //bilinear interpolation
+            {
+                int a_x,a_y; a_x=(int)x0;a_y=(int)y0;
+                RGB thisColor;
+                //                cout<<x0<<' '<<y0<<' '<<a_x<<' '<<a_y<<endl;
+                RGB a,b,c,d;
+                
+                a.R=imageData[a_y*originWidthBytes+a_x*3+0];
+                a.G=imageData[a_y*originWidthBytes+a_x*3+1];
+                a.B=imageData[a_y*originWidthBytes+a_x*3+2];
+                
+                b.R=imageData[(a_y+1)*originWidthBytes+a_x*3+0];
+                b.G=imageData[(a_y+1)*originWidthBytes+a_x*3+1];
+                b.B=imageData[(a_y+1)*originWidthBytes+a_x*3+2];
+                
+                c.R=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+0];
+                c.G=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+1];
+                c.B=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+2];
+                
+                d.R=imageData[a_y*originWidthBytes+(a_x+1)*3+0];
+                d.G=imageData[a_y*originWidthBytes+(a_x+1)*3+1];
+                d.B=imageData[a_y*originWidthBytes+(a_x+1)*3+2];
+                
+                thisColor = BiLinearInterpolation(x0-a_x, y0-a_y, a, b, c, d);
+                image[i*newWidthBytes+j*3+0]=thisColor.R;
+                image[i*newWidthBytes+j*3+1]=thisColor.G;
+                image[i*newWidthBytes+j*3+2]=thisColor.B;
+            }
         }
     delete[] imageData;
     imageData = image;
@@ -720,12 +791,34 @@ void Bitmap::shear_on_x(float dx){
             y0 = i;
             if (x0>originWidth||y0>originHeight||x0<0||y0<0) //blank
                 continue;
-            image[i*newWidthBytes+j*3+0] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
-            image[i*newWidthBytes+j*3+1] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
-            image[i*newWidthBytes+j*3+2] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+            //bilinear interpolation
+            {
+                int a_x,a_y; a_x=(int)x0;a_y=(int)y0;
+                RGB thisColor;
+                //                cout<<x0<<' '<<y0<<' '<<a_x<<' '<<a_y<<endl;
+                RGB a,b,c,d;
+                
+                a.R=imageData[a_y*originWidthBytes+a_x*3+0];
+                a.G=imageData[a_y*originWidthBytes+a_x*3+1];
+                a.B=imageData[a_y*originWidthBytes+a_x*3+2];
+                
+                b.R=imageData[(a_y+1)*originWidthBytes+a_x*3+0];
+                b.G=imageData[(a_y+1)*originWidthBytes+a_x*3+1];
+                b.B=imageData[(a_y+1)*originWidthBytes+a_x*3+2];
+                
+                c.R=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+0];
+                c.G=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+1];
+                c.B=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+2];
+                
+                d.R=imageData[a_y*originWidthBytes+(a_x+1)*3+0];
+                d.G=imageData[a_y*originWidthBytes+(a_x+1)*3+1];
+                d.B=imageData[a_y*originWidthBytes+(a_x+1)*3+2];
+                
+                thisColor = BiLinearInterpolation(x0-a_x, y0-a_y, a, b, c, d);
+                image[i*newWidthBytes+j*3+0]=thisColor.R;
+                image[i*newWidthBytes+j*3+1]=thisColor.G;
+                image[i*newWidthBytes+j*3+2]=thisColor.B;
+            }
         }
     delete[] imageData;
     imageData = image;
@@ -753,31 +846,57 @@ void Bitmap::shear_on_y(float dy)
             //trace back to the pixel in the original image
             x0 = j;
             y0 = i-dy*j;
-            if (x0>originWidth||y0>originHeight||x0<0||y0<0) //blank
-                continue;
-            image[i*newWidthBytes+j*3+0] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+0];//r
-            image[i*newWidthBytes+j*3+1] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+1];//g
-            image[i*newWidthBytes+j*3+2] =
-            imageData[(int)y0*originWidthBytes+(int)x0*3+2];//b
+            //bilinear interpolation
+            {
+                int a_x,a_y; a_x=(int)x0;a_y=(int)y0;
+                RGB thisColor;
+                //                cout<<x0<<' '<<y0<<' '<<a_x<<' '<<a_y<<endl;
+                RGB a,b,c,d;
+                
+                a.R=imageData[a_y*originWidthBytes+a_x*3+0];
+                a.G=imageData[a_y*originWidthBytes+a_x*3+1];
+                a.B=imageData[a_y*originWidthBytes+a_x*3+2];
+                
+                b.R=imageData[(a_y+1)*originWidthBytes+a_x*3+0];
+                b.G=imageData[(a_y+1)*originWidthBytes+a_x*3+1];
+                b.B=imageData[(a_y+1)*originWidthBytes+a_x*3+2];
+                
+                c.R=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+0];
+                c.G=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+1];
+                c.B=imageData[(a_y+1)*originWidthBytes+(a_x+1)*3+2];
+                
+                d.R=imageData[a_y*originWidthBytes+(a_x+1)*3+0];
+                d.G=imageData[a_y*originWidthBytes+(a_x+1)*3+1];
+                d.B=imageData[a_y*originWidthBytes+(a_x+1)*3+2];
+                
+                thisColor = BiLinearInterpolation(x0-a_x, y0-a_y, a, b, c, d);
+                image[i*newWidthBytes+j*3+0]=thisColor.R;
+                image[i*newWidthBytes+j*3+1]=thisColor.G;
+                image[i*newWidthBytes+j*3+2]=thisColor.B;
+            }
         }
     delete[] imageData;
     imageData = image;
 }
-
-
-RGB BiLinearInterpolation(POINT thisPoint,POINT A,POINT B,POINT C,POINT D){
+RGB BiLinearInterpolation(float x, float y,RGB A,RGB B,RGB C, RGB D){
     RGB thisColor;
+//    cout<<x<<' '<<y<<' '<<(int)A.R<<' '<<(int)B.R<<' '<<(int)C.R<<' '<<(int)D.R<<' ';//test
+    thisColor.R =A.R*(1-x)*(1-y)+B.R*(1-x)*y+C.R*x*y+D.R*(1-y)*x;
+//    cout<<(int)thisColor.R<<endl;//test
+    
+    thisColor.G =
+    A.G*(1-x)*(1-y)+
+    B.G*(1-x)*y+
+    C.G*x*y+
+    D.G*(1-y)*x;
+    
+    thisColor.B =
+    A.B*(1-x)*(1-y)+
+    B.B*(1-x)*y+
+    C.B*x*y+
+    D.B*(1-y)*x;
     
     return thisColor;
 }
-
-
-
-
-
-
-
 
 
