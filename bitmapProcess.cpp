@@ -956,7 +956,30 @@ void Bitmap::mean_filter(){
     imageData = image;
 }
 void Bitmap::laplacian_filter(){
-    
+    //laplacian mask, center is negative
+    Mask laplacian(Laplacian);
+    const int delta =1;
+    BYTE* image = new BYTE[widthBytes*ih.biHeight];
+    for (int i = delta; i < ih.biHeight-delta; ++i)
+    {
+        for (int j = delta; j < ih.biWidth-delta; ++j)
+        {
+            image[i*widthBytes+j*3+0]=imageData[i*widthBytes+j*3+0]-(int)laplacian.involution(imageData,widthBytes,1,i,j);
+            image[i*widthBytes+j*3+1]=imageData[i*widthBytes+j*3+1]-(int)laplacian.involution(imageData,widthBytes,2,i,j);
+            image[i*widthBytes+j*3+2]=imageData[i*widthBytes+j*3+2]-(int)laplacian.involution(imageData,widthBytes,3,i,j);
+            
+            if (image[i*widthBytes+j*3+0]>255) image[i*widthBytes+j*3+0]=255;
+            else if (image[i*widthBytes+j*3+0]<0) image[i*widthBytes+j*3+0]=0;
+            
+            if (image[i*widthBytes+j*3+1]>255) image[i*widthBytes+j*3+1]=255;
+            else if (image[i*widthBytes+j*3+1]<0) image[i*widthBytes+j*3+1]=0;
+            
+            if (image[i*widthBytes+j*3+2]>255) image[i*widthBytes+j*3+2]=255;
+            else if (image[i*widthBytes+j*3+2]<0) image[i*widthBytes+j*3+2]=0;
+        }
+    }
+    delete[] imageData;
+    imageData = image;
 }
 
 
