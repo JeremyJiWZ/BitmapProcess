@@ -846,13 +846,14 @@ void Bitmap::shear_on_y(float dy)
             //trace back to the pixel in the original image
             x0 = j;
             y0 = i-dy*j;
+            if (x0>originWidth||y0>originHeight||x0<0||y0<0) //blank
+                continue;
             //bilinear interpolation
             {
                 int a_x,a_y; a_x=(int)x0;a_y=(int)y0;
                 RGB thisColor;
                 //                cout<<x0<<' '<<y0<<' '<<a_x<<' '<<a_y<<endl;
                 RGB a,b,c,d;
-                
                 a.R=imageData[a_y*originWidthBytes+a_x*3+0];
                 a.G=imageData[a_y*originWidthBytes+a_x*3+1];
                 a.B=imageData[a_y*originWidthBytes+a_x*3+2];
@@ -898,5 +899,67 @@ RGB BiLinearInterpolation(float x, float y,RGB A,RGB B,RGB C, RGB D){
     
     return thisColor;
 }
+BYTE get_r(BYTE* imageData,int widthBytes, int x,int y){
+    return imageData[x*widthBytes+y*3+0];
+}
+BYTE get_g(BYTE* imageData,int widthBytes, int x,int y){
+    return imageData[x*widthBytes+y*3+1];
+}
+BYTE get_b(BYTE* imageData,int widthBytes, int x,int y){
+    return imageData[x*widthBytes+y*3+2];
+}
+double Mask::involution(BYTE* image,int widthBytes,int type,int x,int y){
+    //type indicates which color tube to use
+    double sum=0;
+    if (type==1)//r
+    {
+        for (int i = -1; i <= 1; ++i)
+            for (int j = -1;j<=1;j++)
+                sum+=get_r(image,widthBytes,x-i,y+j)*mask[(i+1)*3+j+1];
+//        sum/=16;
+
+    }
+    if (type==2)//g
+    {
+        for (int i = -1; i <= 1; ++i)
+            for (int j = -1;j<=1;j++)
+                sum+=get_g(image,widthBytes,x-i,y+j)*mask[(i+1)*3+j+1];
+//        sum/=16;
+
+    }
+    if (type==3)//b
+    {
+        for (int i = -1; i <= 1; ++i)
+            for (int j = -1;j<=1;j++)
+                sum+=get_b(image,widthBytes,x-i,y+j)*mask[(i+1)*3+j+1];
+//        sum/=16;
+
+    }
+    return sum;
+}
+void Bitmap::mean_filter(){
+    //predefine mask
+    //weighted mask,total weight 24
+    Mask weighted_mask;
+    const int delta = 1;//i: 2*i+1 
+    BYTE* image = new BYTE[widthBytes*ih.biHeight];
+    for (int i = delta; i < ih.biHeight-delta; ++i)
+    {
+        for (int j = delta; j < ih.biWidth-delta; ++j)
+        {
+            image[i*widthBytes+j*3+0]=weighted_mask.involution(imageData,widthBytes,1,i,j)/16;
+            image[i*widthBytes+j*3+1]=weighted_mask.involution(imageData,widthBytes,2,i,j)/16;
+            image[i*widthBytes+j*3+2]=weighted_mask.involution(imageData,widthBytes,3,i,j)/16;
+        }
+    }
+    delete[] imageData;
+    imageData = image;
+}
+void Bitmap::laplacian_filter(){
+    
+}
+
+
+
 
 

@@ -14,7 +14,7 @@ using namespace std;
 int main(int argc, const char * argv[]) {
     Bitmap image;
     string fileName="/Users/jiwentadashi/Pragramming/ImageProcessI/ImageProcessI/3.bmp";   //source image
-    string des_file="/Users/jiwentadashi/Desktop/bilinear_small_scale.bmp";    //destination
+    string des_file="/Users/jiwentadashi/Desktop/mean_filter.bmp";    //destination
     image.setName(fileName);
     image.ReadImage();
 //    image.TurnToGray();
@@ -27,9 +27,10 @@ int main(int argc, const char * argv[]) {
 //    image.rotate(30);
 //    image.scale(1.3, 1.3);
 //    image.scale(10, 10);
-    image.scale(0.9, 0.5);
+//    image.scale(0.9, 0.5);
 //    image.shear_on_x(0.5);
 //    image.shear_on_y(0.5);
+    image.mean_filter();
     image.setName(des_file);
     image.WriteFile();
     

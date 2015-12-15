@@ -128,7 +128,47 @@ public:
     //shear the picture
     void shear_on_x(float dx);
     void shear_on_y(float dy);
+
+    
+    //mean filtering
+    void mean_filter();
+    //laplacian filtering
+    void laplacian_filter();
 };
+enum MaskType{
+    Laplacian,
+    Linear
+};
+class Mask
+{
+    int* mask;
+public:
+    Mask(){
+        mask = new int[9];
+        mask[0]=mask[2]=mask[6]=mask[8]=1;
+        mask[1]=mask[3]=mask[5]=mask[7]=2;
+        mask[4]=4;
+    };
+    Mask(MaskType tp){
+        if (tp==Linear) {
+            Mask();
+        }
+        if (tp==Laplacian) {
+            mask = new int[9];
+            mask[0]=mask[1]=mask[2]=
+            mask[3]=mask[5]=
+            mask[6]=mask[7]=mask[8]=1;
+            mask[4]=-8;
+        }
+    }
+    ~Mask(){};
+    double involution(BYTE* image,int widthBytes,int type,int x,int y);
+
+};
+BYTE get_r(BYTE* imageData,int widthBytes,int x,int y);//new interface,get the R of 24-bit image
+BYTE get_g(BYTE* imageData,int widthBytes,int x,int y);//new interface,get the G of 24-bit image
+BYTE get_b(BYTE* imageData,int widthBytes,int x,int y);//new interface,get the B of 24-bit image
+
 void BinarizeOtsu(int ImageWeight, int ImageHeight, BYTE* gray,BYTE *imageData,int blockWid, int blockHeight);
 void resetImageData(BYTE* imageData, int x, int y, int widthBytes);
 void setImageData(BYTE* imageData, int x, int y, int widthBytes);
