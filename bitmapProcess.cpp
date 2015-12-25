@@ -964,24 +964,87 @@ void Bitmap::laplacian_filter(){
     {
         for (int j = delta; j < ih.biWidth-delta; ++j)
         {
-            image[i*widthBytes+j*3+0]=imageData[i*widthBytes+j*3+0]-(int)laplacian.involution(imageData,widthBytes,1,i,j);
-            image[i*widthBytes+j*3+1]=imageData[i*widthBytes+j*3+1]-(int)laplacian.involution(imageData,widthBytes,2,i,j);
-            image[i*widthBytes+j*3+2]=imageData[i*widthBytes+j*3+2]-(int)laplacian.involution(imageData,widthBytes,3,i,j);
+            int rr,gg,bb;
+//            cout<<(int)laplacian.involution(imageData,widthBytes,1,i,j)<<' '<<(int)laplacian.involution(imageData,widthBytes,2,i,j)<<' '<<(int)laplacian.involution(imageData,widthBytes,3,i,j)<<endl;
+            rr=imageData[i*widthBytes+j*3+0]-(int)laplacian.involution(imageData,widthBytes,1,i,j);
+            gg=imageData[i*widthBytes+j*3+1]-(int)laplacian.involution(imageData,widthBytes,2,i,j);
+            bb=imageData[i*widthBytes+j*3+2]-(int)laplacian.involution(imageData,widthBytes,3,i,j);
             
-            if (image[i*widthBytes+j*3+0]>255) image[i*widthBytes+j*3+0]=255;
-            else if (image[i*widthBytes+j*3+0]<0) image[i*widthBytes+j*3+0]=0;
+            if (rr>255) image[i*widthBytes+j*3+0]=255;
+            else if (rr<0) image[i*widthBytes+j*3+0]=0;
+            else image[i*widthBytes+j*3+0]=rr;
             
-            if (image[i*widthBytes+j*3+1]>255) image[i*widthBytes+j*3+1]=255;
-            else if (image[i*widthBytes+j*3+1]<0) image[i*widthBytes+j*3+1]=0;
+            if (gg>255) image[i*widthBytes+j*3+1]=255;
+            else if (gg<0) image[i*widthBytes+j*3+1]=0;
+            else image[i*widthBytes+j*3+1]=gg;
             
-            if (image[i*widthBytes+j*3+2]>255) image[i*widthBytes+j*3+2]=255;
-            else if (image[i*widthBytes+j*3+2]<0) image[i*widthBytes+j*3+2]=0;
+            if (bb>255) image[i*widthBytes+j*3+2]=255;
+            else if (bb<0) image[i*widthBytes+j*3+2]=0;
+            else image[i*widthBytes+j*3+2]=bb;
         }
     }
     delete[] imageData;
     imageData = image;
 }
 
+double Gaussian(double sigma,double x2){
+    double result;
+    double denominator;
+    double numerator;
+    denominator = sigma*sqrt(2*PI);
+    numerator = exp(-x2/(2*sigma*sigma));
+    result = numerator/denominator;
+    return result;
+}
+double dist2(int x0,int y0,int x,int y){
+    return (x-x0)*(x-x0)+(y-y0)*(y-y0);
+}
+void Bitmap::bilteral_filter(){
+    double sSigma,iSigma;//two sigma: space sigma and idensity sigma
+    int windowWidth,windowHeight;//window be proportional to the image size
+    double rWp,gWp,bWp;//the normalization factor,need to calculated dynamically(not predefined)
+    windowHeight = ih.biHeight*0.12; //0.12 is a hight ratio
+    windowWidth = ih.biWidth*0.12;
+    sSigma = 0.02*sqrt((ih.biWidth*ih.biWidth+ih.biHeight*ih.biHeight)); //space sigma: 2% of diagnal
+    BYTE* image = new BYTE[widthBytes*ih.biHeight]; //store the new image
+
+    iSigma = 5; //predefine iSigma to be 1
+    //iterate the whole image
+    for (int i=windowHeight/2; i<ih.biHeight-windowHeight/2; i++) {
+        for (int j=windowWidth/2; j<ih.biWidth-windowWidth/2; j++) {
+            //calculate Wp
+            rWp=0;gWp=0;bWp=0;
+            double RR=0,GG=0,BB=0;
+            for(int x = i-windowHeight/2;x<i+windowHeight/2;x++)
+                for (int y = j-windowWidth/2; y< j+windowWidth/2; y++) {
+                    int R_R = (imageData[x*widthBytes+y*3+0]-imageData[i*widthBytes+j*3+0])*(imageData[x*widthBytes+y*3+0]-imageData[i*widthBytes+j*3+0]);
+                    double gaussian=Gaussian(sSigma, dist2(i, j, x, y))*Gaussian(iSigma, R_R);
+                    rWp+=gaussian;
+                    RR +=gaussian*imageData[x*widthBytes+y*3+0];
+                    
+                }
+            for(int x = i-windowHeight/2;x<i+windowHeight/2;x++)
+                for (int y = j-windowWidth/2; y< j+windowWidth/2; y++) {
+                    int G_G = (imageData[x*widthBytes+y*3+1]-imageData[i*widthBytes+j*3+1])*(imageData[x*widthBytes+y*3+1]-imageData[i*widthBytes+j*3+1]);
+                    double gaussian=Gaussian(sSigma, dist2(i, j, x, y))*Gaussian(iSigma, G_G);
+                    gWp+=gaussian;
+                    GG +=gaussian*imageData[x*widthBytes+y*3+1];
+                }
+            for(int x = i-windowHeight/2;x<i+windowHeight/2;x++)
+                for (int y = j-windowWidth/2; y< j+windowWidth/2; y++) {
+                    int B_B = (imageData[x*widthBytes+y*3+2]-imageData[i*widthBytes+j*3+2])*(imageData[x*widthBytes+y*3+2]-imageData[i*widthBytes+j*3+2]);
+                    double gaussian=Gaussian(sSigma, dist2(i, j, x, y))*Gaussian(iSigma, B_B);
+                    bWp+=gaussian;
+                    BB +=gaussian*imageData[x*widthBytes+y*3+2];
+                }
+            image[i*widthBytes+j*3+0]=RR/rWp;
+            image[i*widthBytes+j*3+1]=GG/gWp;
+            image[i*widthBytes+j*3+2]=BB/bWp;
+        }
+    }
+    delete[] imageData;
+    imageData = image;
+}
 
 
 

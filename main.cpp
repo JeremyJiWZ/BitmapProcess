@@ -13,8 +13,8 @@
 using namespace std;
 int main(int argc, const char * argv[]) {
     Bitmap image;
-    string fileName="/Users/jiwentadashi/Desktop/1.bmp";   //source image
-    string des_file="/Users/jiwentadashi/Desktop/laplacian_filter.bmp";    //destination
+    string fileName="/Users/jiwentadashi/Desktop/eye.bmp";   //source image
+    string des_file="/Users/jiwentadashi/Desktop/lena_filter.bmp";    //destination
     image.setName(fileName);
     image.ReadImage();
 //    image.TurnToGray();
@@ -31,7 +31,11 @@ int main(int argc, const char * argv[]) {
 //    image.shear_on_x(0.5);
 //    image.shear_on_y(0.5);
 //    image.mean_filter();
-    image.laplacian_filter();
+//    image.laplacian_filter();
+    image.bilteral_filter();
+    image.bilteral_filter();
+//    image.bilteral_filter();
+//    image.bilteral_filter();
     image.setName(des_file);
     image.WriteFile();
     

@@ -134,6 +134,9 @@ public:
     void mean_filter();
     //laplacian filtering
     void laplacian_filter();
+    //biliteral filtering
+    void bilteral_filter();
+    
 };
 enum MaskType{
     Laplacian,
